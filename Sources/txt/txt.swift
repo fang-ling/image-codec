@@ -1,1 +1,5 @@
-import CJPEGTurbo
+import Foundation
+
+public struct Decoder {
+
+}
