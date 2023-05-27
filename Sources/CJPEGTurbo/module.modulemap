@@ -1,0 +1,4 @@
+module CJPEGTurbo [system] {
+    header "/usr/local/include/turbojpeg.h"
+    export *
+}
