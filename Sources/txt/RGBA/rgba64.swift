@@ -34,7 +34,6 @@
 
 public typealias Color = UInt16
 public typealias RGBA64Pixel = UInt64
-public typealias RGBA64 = [RGBA64Pixel]
 
 extension RGBA64Pixel {
     @inlinable public func red() -> Color {
@@ -51,5 +50,21 @@ extension RGBA64Pixel {
 
     @inlinable public func alpha() -> Color {
         return UInt16(truncatingIfNeeded: (self >> 48) & 0xFFFF)
+    }
+}
+
+public struct RGBA64 {
+    public var pixels : [RGBA64Pixel]
+    public var width : Int
+    public var height : Int
+
+    @inlinable init(width : Int, height : Int) {
+        self.width = width
+        self.height = height
+        pixels = [RGBA64Pixel]()
+    }
+
+    @inlinable public init(width : Int, height : Int, rgba24 : [UInt8]) {
+        self.init(width: width, height: height)
     }
 }
