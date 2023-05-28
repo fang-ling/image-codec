@@ -74,7 +74,7 @@ extension Decoder {
                                          count: Int(bytes)).map { $0 }
         let rgba64 = RGBA64(width: Int(width),
                             height: Int(height),
-                            rgba24: pixels)
+                            rgba32: pixels)
         /* Cleanup */
         tjFree(jpeg_buf)
         tjFree(img_buf)

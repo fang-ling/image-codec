@@ -64,7 +64,7 @@ public struct RGBA64 {
         pixels = [RGBA64Pixel]()
     }
 
-    @inlinable public init(width : Int, height : Int, rgba24 : [UInt8]) {
+    @inlinable public init(width : Int, height : Int, rgba32 : [UInt8]) {
         self.init(width: width, height: height)
     }
 }
