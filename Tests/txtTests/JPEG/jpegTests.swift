@@ -1,0 +1,140 @@
+//
+//  jpegTests.swift
+//
+//
+//  Created by Fang Ling on 2023/5/29.
+//
+
+import Foundation
+import XCTest
+@testable import txt
+
+final class jpegTests: XCTestCase {
+    /*
+     * Base64 encoded jpeg file of the flag of R.O.C. (1912-1928)
+     * Quality: 100
+     * Width: 8
+     * Height: 5
+     */
+    let img1 =
+      """
+      /9j/4AAQSkZJRgABAQAASABIAAD/4QDORXhpZgAATU0AKgAAAAgABgESAAMAAAABAAEAAAEa
+      AAUAAAABAAAAVgEbAAUAAAABAAAAXgEoAAMAAAABAAIAAAExAAIAAAAVAAAAZodpAAQAAAAB
+      AAAAfAAAAAAAAABIAAAAAQAAAEgAAAABUGl4ZWxtYXRvciBQcm8gMy4zLjUAAAAEkAQAAgAA
+      ABQAAACyoAEAAwAAAAEAAQAAoAIABAAAAAEAAAAIoAMABAAAAAEAAAAFAAAAADIwMjM6MDU6
+      MjkgMTA6Mzg6NDgA/+EJyWh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8APD94cGFja2V0
+      IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0
+      YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNi4wLjAiPiA8
+      cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5
+      bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0
+      dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcDpNZXRhZGF0YURhdGU9IjIwMjMtMDUt
+      MjlUMTA6NDA6NTgrMDg6MDAiIHhtcDpDcmVhdG9yVG9vbD0iUGl4ZWxtYXRvciBQcm8gMy4z
+      LjUiIHhtcDpDcmVhdGVEYXRlPSIyMDIzLTA1LTI5VDEwOjM4OjQ4KzA4OjAwIi8+IDwvcmRm
+      OlJERj4gPC94OnhtcG1ldGE+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+      ICAgICAgICAgICAgICAgPD94cGFja2V0IGVuZD0idyI/PgD/7QBkUGhvdG9zaG9wIDMuMAA4
+      QklNBAQAAAAAACwcAVoAAxslRxwCAAACAAIcAj4ACDIwMjMwNTI5HAI/AAsxMDM4NDgrMDgw
+      MDhCSU0EJQAAAAAAEBeCDLFk0FPDph45z8QCbwL/wAARCAAFAAgDAREAAhEBAxEB/8QAHwAA
+      AQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQR
+      BRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RF
+      RkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ip
+      qrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEA
+      AwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEE
+      BSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNE
+      RUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaan
+      qKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9sAQwAB
+      AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB
+      AQEBAQEBAQEB/9sAQwEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB
+      AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB/90ABAAB/9oADAMBAAIRAxEAPwD8YP8Ah+3+y/8A
+      9I+/iP8A+H6/YN/+k8V+M/8AEtv0ev8Ao2Wdf+NCfS1/+qCP1v8A4mV+lt/0ll41/f4a/wD0
+      tz//2Q==
+      """.components(separatedBy: .newlines).joined()
+
+    func test_decode() throws {
+        /* Write image to temp file */
+        let file = fopen("img1.jpg", "wb")
+        let data = Data(base64Encoded: img1)!
+        data.withUnsafeBytes { ptr in
+            let bytes = ptr.bindMemory(to: UInt8.self).baseAddress!
+            fwrite(bytes, data.count, 1, file)
+        }
+        fclose(file)
+
+        /*
+         * Note that JPEG's RGB to YCbCr transformation is lossy in the low few
+         * bits.
+         */
+        let result = Decoder.decode(from_jpeg: "img1.jpg")
+        var example = RGBA64(width: 8, height: 5)
+        /* Red */
+        for _ in 0 ..< 8 {
+            example.pixels.append(
+              RGBA64Pixel(red: 224, green: 27, blue: 18, alpha: 255)
+            )
+        }
+        /* Yellow */
+        for _ in 0 ..< 8 {
+            example.pixels.append(
+              RGBA64Pixel(red: 255, green: 197, blue: 0, alpha: 255)
+            )
+        }
+        /* Blue */
+        for _ in 0 ..< 8 {
+            example.pixels.append(
+              RGBA64Pixel(red: 3, green: 99, blue: 157, alpha: 255)
+            )
+        }
+        /* White */
+        for _ in 0 ..< 8 {
+            example.pixels.append(
+              RGBA64Pixel(red: 255, green: 255, blue: 253, alpha: 255)
+            )
+        }
+        /* Black */
+        for _ in 0 ..< 8 {
+            example.pixels.append(
+              RGBA64Pixel(red: 0, green: 0, blue: 2, alpha: 255)
+            )
+        }
+        XCTAssertEqual(example, result)
+
+        /* Remove temp file */
+        try! FileManager.default.removeItem(atPath: "img1.jpg")
+    }
+}

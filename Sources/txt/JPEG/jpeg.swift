@@ -15,17 +15,19 @@ let swiftTjPixelSize = [tjPixelSize.0, tjPixelSize.1, tjPixelSize.2,
                         tjPixelSize.9, tjPixelSize.10, tjPixelSize.11]
 
 extension Decoder {
-    @inlinable public static func decode(from jpeg : String) -> RGBA64 {
+    @inlinable public static func decode(from_jpeg jpeg: String) -> RGBA64 {
         /* Read the JPEG file into memory. */
         guard let jpeg_file = fopen(jpeg, "rb") else {
             fatalError("opening input file")
         }
-        if fseek(jpeg_file, 0, SEEK_END) < 0 ||
-             fseek(jpeg_file, 0, SEEK_SET) < 0 {
+        if fseek(jpeg_file, 0, SEEK_END) < 0 { /* seek to end */
             fatalError("determining input file size")
         }
-        let jpeg_size = ftell(jpeg_file)
+        let jpeg_size = ftell(jpeg_file) /* get file size */
         if jpeg_size <= 0 {
+            fatalError("determining input file size")
+        }
+        if fseek(jpeg_file, 0, SEEK_SET) < 0 { /* seek back */
             fatalError("determining input file size")
         }
         guard let jpeg_buf = tjAlloc(CInt(jpeg_size)) else {

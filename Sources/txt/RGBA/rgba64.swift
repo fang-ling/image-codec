@@ -68,7 +68,7 @@ extension RGBA64Pixel {
     }
 }
 
-public struct RGBA64 {
+public struct RGBA64 : Equatable {
     public var pixels : [RGBA64Pixel]
     public var width : Int
     public var height : Int
