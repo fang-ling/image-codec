@@ -15,7 +15,7 @@ let swiftTjPixelSize = [tjPixelSize.0, tjPixelSize.1, tjPixelSize.2,
                         tjPixelSize.9, tjPixelSize.10, tjPixelSize.11]
 
 extension Decoder {
-    @inlinable public static func decode(from_jpeg jpeg: String) -> RGBA64 {
+    @inlinable public static func decode(from_jpeg jpeg : String) -> RGBA64 {
         /* Read the JPEG file into memory. */
         guard let jpeg_file = fopen(jpeg, "rb") else {
             fatalError("opening input file")

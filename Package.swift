@@ -12,12 +12,18 @@ let package = Package(
   targets: [
     .target(
       name: "txt",
-      dependencies:["CJPEGTurbo"]),
+      dependencies:["CJPEGTurbo", "CPNG"]),
     .systemLibrary(
       name: "CJPEGTurbo",
       pkgConfig: "libturbojpeg",
       providers: [
         .brew(["jpeg-turbo"])
+      ]),
+    .systemLibrary(
+      name: "CPNG",
+      pkgConfig: "libpng",
+      providers: [
+        .brew(["libpng"])
       ]),
     .testTarget(
       name: "txtTests",
