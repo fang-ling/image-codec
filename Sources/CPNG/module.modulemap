@@ -1,4 +1,0 @@
-module CPNG [system] {
-    header "include/cpng.h"
-    export *
-}

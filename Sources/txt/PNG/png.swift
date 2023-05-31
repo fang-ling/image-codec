@@ -5,17 +5,27 @@
 //  Created by Fang Ling on 2023/5/29.
 //
 
-import CPNG
+import PNG
 import Foundation
 
 extension Decoder {
-    @inlinable public static func decode(from_png png : String) {
-        //guard let png_file = fopen(png, "rb") else {
-        //    fatalError("opening input file")
-        //}
-        //let png_check_bytes = 8
-        var image = png_image()
-        memset(&image, 0, MemoryLayout<png_image>.size)
-        image.version = UInt32(PNG_IMAGE_VERSION)
+    @inlinable public static func decode(from_png png : String) -> RGBA64 {
+        guard let image : PNG.Data.Rectangular = try! .decompress(
+                path: png
+              ) else {
+            fatalError("reading png file")
+        }
+        let _rgba32 : [PNG.RGBA<UInt8>] = image.unpack(
+          as: PNG.RGBA<UInt8>.self
+        )
+        var rgba32 = [UInt8]()
+        for pixel in _rgba32 {
+            rgba32.append(pixel.r)
+            rgba32.append(pixel.g)
+            rgba32.append(pixel.b)
+            rgba32.append(pixel.a)
+        }
+        let size = image.size
+        return RGBA64(width: size.x, height: size.y, rgba32: rgba32)
     }
 }
