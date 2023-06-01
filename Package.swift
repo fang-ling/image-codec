@@ -20,7 +20,8 @@ let package = Package(
       name: "txt",
       dependencies:[
         "CJPEGTurbo",
-        .product(name: "PNG", package: "swift-png")
+        .product(name: "PNG", package: "swift-png"),
+        "CHEIF"
       ]),
     .systemLibrary(
       name: "CJPEGTurbo",
@@ -28,12 +29,12 @@ let package = Package(
       providers: [
         .brew(["jpeg-turbo"])
       ]),
-//    .systemLibrary(
-//      name: "CPNG",
-//      pkgConfig: "libpng",
-//      providers: [
-//        .brew(["libpng"])
-//      ]),
+    .systemLibrary(
+      name: "CHEIF",
+      pkgConfig: "libheif",
+      providers: [
+        .brew(["libheif"])
+      ]),
     .testTarget(
       name: "txtTests",
       dependencies: ["txt"]),
