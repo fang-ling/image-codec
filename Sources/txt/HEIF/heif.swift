@@ -10,25 +10,42 @@ import Foundation
 
 extension Decoder {
     @inlinable public static func decode(from_heif heif : String) -> RGBA64 {
-        let ctx = heif_context_alloc()
-        heif_context_read_from_file(ctx, heif, nil)
+        guard let ctx = heif_context_alloc() else {
+            fatalError("Could not create context object.")
+        }
+        var err = heif_context_read_from_file(ctx, heif, nil)
+        if err.code != heif_error_code(0) {
+            fatalError("Could not read HEIF/AVIF file: \(err.message!)")
+        }
+
+        /* TODO: Note that num_of_images > 1 is currently not handled */
+        let num_of_images = heif_context_get_number_of_top_level_images(ctx)
+        if num_of_images == 0 {
+            fatalError("File doesn't contain any images")
+        }
 
         /* Get a handle to the primary image */
         var handle : OpaquePointer?
-        heif_context_get_primary_image_handle(ctx, &handle)
+        err = heif_context_get_primary_image_handle(ctx, &handle)
+        if err.code != heif_error_code(0) {
+            fatalError("Could not read HEIF/AVIF image \(err.message!)")
+        }
 
         /*
          * Decode the image and convert colorspace to RGBA, saved as 32bit
          * interleaved.
          */
         var img : OpaquePointer?
-        heif_decode_image(
+        err = heif_decode_image(
           handle,
           &img,
           heif_colorspace_RGB,
           heif_chroma_interleaved_RGBA,
           nil
         )
+        if err.code != heif_error_code(0) {
+            fatalError("Could not decode image \(err.message!)")
+        }
 
         let width = Int(heif_image_handle_get_width(handle))
         let height = Int(heif_image_handle_get_height(handle))
