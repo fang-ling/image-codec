@@ -21,7 +21,8 @@ let package = Package(
       dependencies:[
         "CJPEGTurbo",
         .product(name: "PNG", package: "swift-png"),
-        "CHEIF"
+        "CHEIF",
+        "CWebP"
       ]),
     .systemLibrary(
       name: "CJPEGTurbo",
@@ -34,6 +35,12 @@ let package = Package(
       pkgConfig: "libheif",
       providers: [
         .brew(["libheif"])
+      ]),
+    .systemLibrary(
+      name: "CWebP",
+      pkgConfig: "libwebp",
+      providers: [
+        .brew(["webp"])
       ]),
     .testTarget(
       name: "txtTests",
