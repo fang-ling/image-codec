@@ -63,3 +63,55 @@ extension Decoder {
         return RGBA64
     }
 }
+
+extension Encoder {
+    /* Note that if is_lossless is true, then quality is ignored */
+    @inlinable public static func encode(
+      to_webp webp : String,
+      raw : RGBA64,
+      quality : Float,
+      is_lossless : Bool = false
+    ) {
+        let rgba32 = raw.to_rgba32()
+        var result : UnsafeMutablePointer<UInt8>?
+        var size = 0
+        if is_lossless {
+            rgba32.withUnsafeBufferPointer { ptr in
+                size =
+                  WebPEncodeLosslessRGBA(
+                    ptr.baseAddress,
+                    CInt(raw.width),
+                    CInt(raw.height),
+                    CInt(raw.width * 4),
+                    &result
+                  )
+            }
+        } else {
+            rgba32.withUnsafeBufferPointer { ptr in
+                size =
+                  WebPEncodeRGBA(
+                    ptr.baseAddress,
+                    CInt(raw.width),
+                    CInt(raw.height),
+                    CInt(raw.width * 4),
+                    quality,
+                    &result
+                  )
+            }
+        }
+
+        if size == 0 { /* Encode error */
+            fatalError("WebPEncode(lossless)RGBA failed")
+        }
+
+        /* Write to file */
+        guard let file = fopen(webp, "wb") else {
+            fatalError("opening webp file")
+        }
+
+        if fwrite(result, size, 1, file) != 1 {
+            fatalError("fwrite \(size)")
+        }
+        WebPFree(result)
+    }
+}

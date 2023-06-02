@@ -103,4 +103,19 @@ public struct RGBA64 : Equatable {
             )
         }
     }
+
+    /*
+     * Returns RGBA image samples in [r0, g0, b0, a0, r1, g1, b1, a1, ...]
+     * order.
+     */
+    public func to_rgba32() -> [UInt8] {
+        var result = [UInt8]()
+        for pixel in pixels {
+            result.append(UInt8(truncatingIfNeeded: pixel.red()))
+            result.append(UInt8(truncatingIfNeeded: pixel.green()))
+            result.append(UInt8(truncatingIfNeeded: pixel.blue()))
+            result.append(UInt8(truncatingIfNeeded: pixel.alpha()))
+        }
+        return result
+    }
 }
