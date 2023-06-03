@@ -6,13 +6,13 @@ let package = Package(
   name: "txt",
   products: [
     .library(
-      name: "txt",
+      name: "ImageCodec",
       targets: ["txt"]),
   ],
   dependencies: [
     .package(
       url: "https://github.com/tayloraswift/swift-png",
-      .upToNextMajor(from: "4.0.2")
+      from: "4.0.2"
     )
   ],
   targets: [
