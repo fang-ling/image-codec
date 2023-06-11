@@ -74,7 +74,8 @@ public struct RGBA64 : Equatable {
     public var height : Int
     //public var bits_per_channel : Int
 
-    @inlinable init(width : Int, height : Int/*, bits_per_channel : Int*/) {
+    @inlinable
+    public init(width : Int, height : Int/*, bits_per_channel : Int*/) {
         self.width = width
         self.height = height
         //self.bits_per_channel = bits_per_channel
