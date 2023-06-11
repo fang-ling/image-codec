@@ -6,7 +6,7 @@ let package = Package(
   name: "txt",
   products: [
     .library(
-      name: "ImageCodec",
+      name: "txt",
       targets: ["txt"]),
   ],
   dependencies: [
