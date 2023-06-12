@@ -66,10 +66,11 @@ extension Decoder {
 
 extension Encoder {
     /* Note that if is_lossless is true, then quality is ignored */
-    @inlinable public static func encode(
+    @inlinable
+    public static func encode(
       to_webp webp : String,
       raw : RGBA64,
-      quality : Float,
+      quality : Float = 80,
       is_lossless : Bool = false
     ) {
         let rgba32 = raw.to_rgba32()

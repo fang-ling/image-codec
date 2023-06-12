@@ -163,7 +163,6 @@ final class webpTests: XCTestCase {
         Encoder.encode(
           to_webp: "img2.webp",
           raw: example,
-          quality: 19358,
           is_lossless: true
         )
         try FileManager.default.removeItem(atPath: "img1.webp")
