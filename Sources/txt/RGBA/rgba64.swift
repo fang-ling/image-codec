@@ -72,25 +72,24 @@ public struct RGBA64 : Equatable {
     public var pixels : [RGBA64Pixel]
     public var width : Int
     public var height : Int
-    //public var bits_per_channel : Int
 
     @inlinable
-    public init(width : Int, height : Int/*, bits_per_channel : Int*/) {
+    public init(width : Int, height : Int) {
         self.width = width
         self.height = height
-        //self.bits_per_channel = bits_per_channel
         pixels = [RGBA64Pixel]()
     }
 
-    @inlinable public init(
+    /* RGBA32 -> RGBA64 */
+    @inlinable
+    public init(
       width : Int,
       height : Int,
       rgba32 : [UInt8]
     ) {
         self.init(
           width: width,
-          height: height/*,
-          bits_per_channel: 32 / 4*/
+          height: height
         )
         /* In the order R, G, B, A */
         for i in stride(from: 0, to: rgba32.count, by: 4) {
@@ -102,6 +101,19 @@ public struct RGBA64 : Equatable {
                 alpha: Color(rgba32[i + 3])
               )
             )
+        }
+    }
+
+    /*
+     * Grayscale16 -> RGBA64
+     * R = G = B = gray value
+     */
+    @inlinable
+    public init(grayscale16 : Grayscale16) {
+        width = grayscale16.width
+        height = grayscale16.height
+        pixels = grayscale16.pixels.map {
+            RGBA64Pixel(red: $0, green: $0, blue: $0, alpha: 0xFFFF)
         }
     }
 

@@ -11,7 +11,6 @@ import XCTest
 final class rgba64Tests: XCTestCase {
     func testRGBA64() {
         /* Violet with opacity 0.8: rgba(155, 38, 182, 0.8) */
-        /* Note that alpha = Int( * 0.8) = 52428 */
         let violet =
           RGBA64Pixel(
             red: 155,
