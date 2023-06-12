@@ -112,6 +112,7 @@ extension Encoder {
         if fwrite(result, size, 1, file) != 1 {
             fatalError("fwrite \(size)")
         }
+        fclose(file)
         WebPFree(result)
     }
 }
