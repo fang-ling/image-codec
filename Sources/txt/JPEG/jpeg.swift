@@ -52,7 +52,7 @@ extension Decoder {
                                &height,
                                &jpeg_sub_samp,
                                &jpeg_color_space) < 0 {
-            fatalError("reading JPEG header")
+            fatalError("reading JPEG header: \(jpeg)")
         }
         /* decompress the JPEG data */
         let pixel_format = Int(TJPF_RGBX.rawValue)
