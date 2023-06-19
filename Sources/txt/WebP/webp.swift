@@ -33,7 +33,7 @@ extension Decoder {
         var width : CInt = 0
         var height : CInt = 0
         if WebPGetInfo(webp_buf, webp_size, &width, &height) == 0 {
-            fatalError("WebPGetInfo")
+            fatalError("WebPGetInfo: \(webp)")
         }
         guard let _rgba32 =
                 WebPDecodeRGBA(
@@ -42,7 +42,7 @@ extension Decoder {
                   &width,
                   &height
                 ) else {
-            fatalError("WebPDecodeRGBA")
+            fatalError("WebPDecodeRGBA: \(webp)")
         }
         let rgba32 =
           UnsafeBufferPointer(
