@@ -69,7 +69,7 @@ extension Decoder {
                          height,
                          CInt(pixel_format),
                          0) < 0 {
-            fatalError("decompressing JPEG image")
+            fatalError("decompressing JPEG image: \(jpeg)")
         }
         /* Convert RGBX(32) to RGBA64 */
         let pixels = UnsafeBufferPointer(start: img_buf,
