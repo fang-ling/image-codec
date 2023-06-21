@@ -9,6 +9,7 @@
 
 ### To do
 
+- [ ] Auxiliary data and metadata
 - [ ] Advanced Encoder API
 - [ ] Swift error handling
 
@@ -24,20 +25,23 @@
 Decode an image:
 
 ```swift
-import ImageCodec
+import txt
 var rgba64 = Decoder.decode(from_png: png_file_path)
 // Other formats
 // decode(from_heif: String) -> RGBA64 (Value)
 // decode(from_jpeg: String) -> RGBA64 (Value)
 // decode(from_webp: String) -> RGBA64 (Value)
+
+// Or use a generic decode function:
+var rgba64_2 = Decoder.decode(from: image_file_path)
 ```
 
 Encode an image:
 ```swift
-import ImageCodec
+import txt
 Encoder.encode(to_webp: String, raw: RGBA64, quality: Float)
 // To perform lossless encoding
-Encoder.encode(to_webp: String, raw: RGBA64, quality: 100, is_lossless: true)
+Encoder.encode(to_webp: String, raw: RGBA64, is_lossless: true)
 ```
 
 **RGBA64** is an intermediate structure used to store raw RGBA data, and it includes an array of 64-bit unsigned integers. The four color components, R, G, B, and A, are stored in the lowest 16 bits, the second 16 bits, the third 16 bits, and the highest 16 bits of each 64-bit integer, respectively.
@@ -53,17 +57,13 @@ import PackageDescription
 let package = Package(
   name: "MyPackage",
   dependencies: [
-    .package(url: "https://github.com/fang-ling/image-codec", from: "0.0.1")
+    .package(url: "https://github.com/fang-ling/image-codec", from: "0.0.9"),
   ],
   targets: [
     .target(
       name: "MyTarget",
       dependencies: [
-        .product(
-          name: "ImageCodec",
-          package: "image-codec",
-          moduleAliases: ["ImageCodec" : "txt"]
-        ),
+        .product(name: "txt", package: "image-codec"),
       ]
     )
   ]
