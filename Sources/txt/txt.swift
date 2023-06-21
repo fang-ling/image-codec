@@ -15,7 +15,17 @@ public struct Decoder {
     @usableFromInline
     static let SIG : [(Int, [UInt8])] = [
       /* JPEG: offset = 0, ascii signature = '....' */
-      (0, [0xff, 0xd8, 0xff, 0xe0]),
+      /*
+       * Note that for JPEG format, there are five variants:
+       *   FF D8 FF DB
+       *   FF D8 FF E0 00 10 4A 46 49 46 00 01
+       *   FF D8 FF EE
+       *   FF D8 FF E1 ?? ?? 45 78 69 66 00 00
+       *   FF D8 FF E0
+       *  See: https://en.wikipedia.org/wiki/List_of_file_signatures
+       * For simplicity, we just compare the first three bytes.
+       */
+      (0, [0xff, 0xd8, 0xff/*, 0xe0*/]),
       /* HEIC: offset = 4, ascii signature = 'ftypheic' */
       (4, [0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63]),
       /* PNG:  offset = 0, ascii signature = '.PNG....' */
@@ -41,8 +51,8 @@ public struct Decoder {
         /* Try JPEG */
         if signature[0+SIG[0].0] == SIG[0].1[0] &&
              signature[1+SIG[0].0] == SIG[0].1[1] &&
-             signature[2+SIG[0].0] == SIG[0].1[2] &&
-             signature[3+SIG[0].0] == SIG[0].1[3] {
+             signature[2+SIG[0].0] == SIG[0].1[2]/* &&
+             signature[3+SIG[0].0] == SIG[0].1[3]*/ {
             return decode(from_jpeg: file)
         } else if signature[0+SIG[1].0] == SIG[1].1[0] && /* Try HEIC */
                     signature[1+SIG[1].0] == SIG[1].1[1] &&
