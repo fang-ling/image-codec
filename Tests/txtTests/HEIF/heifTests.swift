@@ -104,4 +104,18 @@ final class heifTests: XCTestCase {
         /* Remove temp file */
         try! FileManager.default.removeItem(atPath: "img1.heic")
     }
+
+    func test_decode_depth() throws {
+        /*guard let depth = Decoder.decode_depth(
+                from_heif: "Images/depth.heic"
+              ) else {
+            fatalError("The image contains no depth map data.")
+        }
+        let rgba64 = RGBA64(grayscale16: depth)
+        Encoder.encode(
+          to_webp: "depth_map.webp",
+          raw: rgba64,
+          is_lossless: true
+        )*/
+    }
 }
