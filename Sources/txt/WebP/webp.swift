@@ -9,7 +9,8 @@ import CWebP
 import Foundation
 
 extension Decoder {
-    @inlinable public static func decode(from_webp webp : String) -> RGBA64 {
+    @inlinable
+    public static func decode(from_webp webp : String) -> RGBA64 {
         /* Read the WebP file into memory. */
         guard let webp_file = fopen(webp, "rb") else {
             fatalError("opening input file")
