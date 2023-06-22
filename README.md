@@ -25,7 +25,7 @@
 Decode an image:
 
 ```swift
-import txt
+import ImageCodec
 var rgba64 = Decoder.decode(from_png: png_file_path)
 // Other formats
 // decode(from_heif: String) -> RGBA64 (Value)
@@ -38,7 +38,7 @@ var rgba64_2 = Decoder.decode(from: image_file_path)
 
 Encode an image:
 ```swift
-import txt
+import ImageCodec
 Encoder.encode(to_webp: String, raw: RGBA64, quality: Float)
 // To perform lossless encoding
 Encoder.encode(to_webp: String, raw: RGBA64, is_lossless: true)
@@ -57,13 +57,13 @@ import PackageDescription
 let package = Package(
   name: "MyPackage",
   dependencies: [
-    .package(url: "https://github.com/fang-ling/image-codec", from: "0.0.9"),
+    .package(url: "https://github.com/fang-ling/image-codec", from: "0.0.12"),
   ],
   targets: [
     .target(
       name: "MyTarget",
       dependencies: [
-        .product(name: "txt", package: "image-codec"),
+        .product(name: "ImageCodec", package: "image-codec"),
       ]
     )
   ]
