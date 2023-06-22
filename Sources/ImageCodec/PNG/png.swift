@@ -7,6 +7,7 @@
 
 import PNG
 import Foundation
+import ImageIntermedia
 
 extension Decoder {
     @inlinable public static func decode(from_png png : String) -> RGBA64? {

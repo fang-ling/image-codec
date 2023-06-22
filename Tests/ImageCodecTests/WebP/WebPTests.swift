@@ -1,15 +1,16 @@
 //
-//  webpTests.swift
+//  WebPTests.swift
 //
 //
 //  Created by Fang Ling on 2023/6/1.
 //
 
 import Foundation
+import ImageIntermedia
 import XCTest
-@testable import txt
+@testable import ImageCodec
 
-final class webpTests: XCTestCase {
+final class WebPTests : XCTestCase {
     /*
      * Base64 encoded webp file of the flag of R.O.C. (1912-1928)
      * Width: 16

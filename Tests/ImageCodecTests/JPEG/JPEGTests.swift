@@ -1,15 +1,16 @@
 //
-//  jpegTests.swift
+//  JPEGTests.swift
 //
 //
 //  Created by Fang Ling on 2023/5/29.
 //
 
 import Foundation
+import ImageIntermedia
 import XCTest
-@testable import txt
+@testable import ImageCodec
 
-final class jpegTests: XCTestCase {
+final class JPEGTests : XCTestCase {
     /*
      * Base64 encoded jpeg file of the flag of R.O.C. (1912-1928)
      * Quality: 100

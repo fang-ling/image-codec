@@ -1,15 +1,16 @@
 //
-//  heifTests.swift
+//  HEIFTests.swift
 //
 //
 //  Created by Fang Ling on 2023/6/2.
 //
 
 import Foundation
+import ImageIntermedia
 import XCTest
-@testable import txt
+@testable import ImageCodec
 
-final class heifTests: XCTestCase {
+final class HEIFTests : XCTestCase {
     /*
      * Base64 encoded heif file of blue square
      * Width: 8

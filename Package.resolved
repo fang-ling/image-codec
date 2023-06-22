@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "image-intermedia",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/fang-ling/image-intermedia",
+      "state" : {
+        "revision" : "a4fde248d9ea4b6589d069812f45c5ec50d03b73",
+        "version" : "0.0.1"
+      }
+    },
+    {
       "identity" : "swift-png",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tayloraswift/swift-png",

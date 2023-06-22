@@ -7,6 +7,7 @@
 
 import CHEIF
 import Foundation
+import ImageIntermedia
 
 extension Decoder {
     @inlinable

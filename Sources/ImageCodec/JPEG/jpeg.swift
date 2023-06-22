@@ -7,6 +7,7 @@
 
 import CJPEGTurbo
 import Foundation
+import ImageIntermedia
 
 @usableFromInline
 let swiftTjPixelSize = [tjPixelSize.0, tjPixelSize.1, tjPixelSize.2,

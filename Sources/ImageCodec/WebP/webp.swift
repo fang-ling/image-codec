@@ -7,6 +7,7 @@
 
 import CWebP
 import Foundation
+import ImageIntermedia
 
 extension Decoder {
     @inlinable

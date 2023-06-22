@@ -1,15 +1,16 @@
 //
-//  pngTests.swift
+//  PNGTests.swift
 //
 //
 //  Created by Fang Ling on 2023/5/31.
 //
 
 import Foundation
+import ImageIntermedia
 import XCTest
-@testable import txt
+@testable import ImageCodec
 
-final class pngTests: XCTestCase {
+final class PNGTests : XCTestCase {
     /*
      * Base64 encoded png file of the flag of R.O.C. (1912-1928)
      * Width: 8

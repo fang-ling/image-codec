@@ -1,11 +1,12 @@
 //
-//  txt.swift
+//  ImageCodec.swift
 //
 //
 //  Created by Fang Ling on 2023/6/1.
 //
 
 import Foundation
+import ImageIntermedia
 
 public struct Decoder {
     /*
