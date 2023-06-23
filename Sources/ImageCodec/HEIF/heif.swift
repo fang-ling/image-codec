@@ -62,15 +62,15 @@ extension Decoder {
             fatalError("heif_image_get_plane_readonly")
         }
 
+        /* The 'stride' is returned as "bytes per line". */
         var rgba32 = [UInt8]()
         for y in 0 ..< height {
             rgba32 +=
               UnsafeBufferPointer(
                 start: row_rgba32.advanced(by: y * Int(stride)),
-                count: Int(stride / 8)
+                count: Int(stride)
               ).map { $0 }
         }
-
         /* clean up resources */
         heif_image_release(img)
         heif_image_handle_release(handle)
@@ -80,7 +80,7 @@ extension Decoder {
     }
 
     @inlinable
-    public static func decode_depth(from_heif heif : String) -> Grayscale16? {
+    public static func decode_depth(from_heif heif : String) -> RGBA64? {
         guard let ctx = heif_context_alloc() else {
             fatalError("Could not create context object.")
         }
@@ -125,19 +125,19 @@ extension Decoder {
             err = heif_decode_image(
               depth_handle,
               &depth_image,
-              heif_colorspace_monochrome,
-              heif_chroma_monochrome,
+              heif_colorspace_RGB,
+              heif_chroma_interleaved_RGBA,
               nil
             )
             if err.code != heif_error_Ok {
                 fatalError("Could not decode depth image: \(err.message!)")
             }
 
-            let width = Int(heif_image_handle_get_width(handle))
-            let height = Int(heif_image_handle_get_height(handle))
+            let width = Int(heif_image_handle_get_width(depth_handle))
+            let height = Int(heif_image_handle_get_height(depth_handle))
 
             var stride : CInt = 0
-            guard let row_grayscale16 =
+            guard let row_rgba32 =
                     heif_image_get_plane_readonly(
                       depth_image,
                       heif_channel_interleaved,
@@ -146,23 +146,21 @@ extension Decoder {
                 fatalError("heif_image_get_plane_readonly")
             }
 
-            var grayscale8 = [UInt8]()
+            var rgba32 = [UInt8]()
             for y in 0 ..< height {
-                grayscale8 +=
+                rgba32 +=
                   UnsafeBufferPointer(
-                    start: row_grayscale16.advanced(by: y * Int(stride)),
-                    count: Int(stride / 8)
+                    start: row_rgba32.advanced(by: y * Int(stride)),
+                    count: Int(stride)
                   ).map { $0 }
             }
-
-            var grayscale16 = Grayscale16(width: width, height: height)
-            grayscale16.pixels = grayscale8.map { Color($0) }
-
-            return grayscale16
             /* clean up resources */
-            //heif_image_release(img)
-            //heif_image_handle_release(handle)
-            //heif_context_free(ctx)
+            heif_image_release(depth_image)
+            heif_image_handle_release(depth_handle)
+            heif_image_handle_release(handle)
+            heif_context_free(ctx)
+
+            return RGBA64(width: width, height: height, rgba32: rgba32)
         } else { /* Image does not have depth map */
             return nil
         }
