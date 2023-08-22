@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
   name: "txt",
+  platforms: [.macOS(.v13)],
   products: [
     .library(name: "ImageCodec",targets: ["ImageCodec"]),
   ],

@@ -5,8 +5,55 @@
 //  Created by Fang Ling on 2023/6/1.
 //
 
+import Accelerate
 import Foundation
 import ImageIntermedia
+import ImageIO
+
+@inlinable
+public func image_decode(file_path: String) -> ([UInt16]?, Int) {
+    /* Create CGImageSource */
+    guard
+      let src =
+        CGImageSourceCreateWithURL(
+          URL(filePath: file_path) as CFURL,
+          nil
+        ) else { print("unable to create CGImageSource"); return (nil, 0) }
+    /* Create CGImage */
+    guard
+      let cg_img =
+        CGImageSourceCreateImageAtIndex(
+          src,
+          0,
+          nil
+        ) else { print("unable to create CGImage"); return (nil, 0) }
+    /* Get bit depth, <= 16 is supported */
+    let bit_depth = cg_img.bitsPerComponent
+
+    /* Create vImage buffer */
+    guard
+      let format = vImage_CGImageFormat(cgImage: cg_img),
+      let buffer = try? vImage_Buffer(cgImage: cg_img, format: format) else {
+        print("unable to create vImage_Buffer")
+        return (nil, 0)
+    }
+
+    if bit_depth > 8 {
+        let row_stride =
+          buffer.rowBytes / MemoryLayout<UInt16>.stride / format.componentCount
+        let n = row_stride * Int(buffer.height) * format.componentCount
+        let start = buffer.data.assumingMemoryBound(to: UInt16.self)
+        let ptr = UnsafeBufferPointer<UInt16>(start: start, count: n)
+        return (Array(ptr), bit_depth)
+    } else {
+        let row_stride =
+          buffer.rowBytes / MemoryLayout<UInt8>.stride / format.componentCount
+        let n = row_stride * Int(buffer.height) * format.componentCount
+        let start = buffer.data.assumingMemoryBound(to: UInt8.self)
+        let ptr = UnsafeBufferPointer<UInt8>(start: start, count: n)
+        return (Array(ptr).map { UInt16($0) }, bit_depth)
+    }
+}
 
 public struct Decoder {
     /*
