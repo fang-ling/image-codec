@@ -10,48 +10,58 @@ import Foundation
 import ImageIntermedia
 import ImageIO
 
+@usableFromInline
+let MAXIMUM_BPC = 16
+
 @inlinable
-public func image_decode(file_path: String) -> ([UInt16]?, Int) {
+public func image_decode(file_path: String) -> [UInt16]? {
     /* Create CGImageSource */
     guard
-      let src =
-        CGImageSourceCreateWithURL(
-          URL(filePath: file_path) as CFURL,
-          nil
-        ) else { print("unable to create CGImageSource"); return (nil, 0) }
+      let src = CGImageSourceCreateWithURL(
+        URL(filePath: file_path) as CFURL,
+        nil
+      ) else {
+        print("unable to create CGImageSource")
+        return nil
+    }
     /* Create CGImage */
     guard
-      let cg_img =
-        CGImageSourceCreateImageAtIndex(
-          src,
-          0,
-          nil
-        ) else { print("unable to create CGImage"); return (nil, 0) }
-    /* Get bit depth, <= 16 is supported */
-    let bit_depth = cg_img.bitsPerComponent
-
-    /* Create vImage buffer */
-    guard
-      let format = vImage_CGImageFormat(cgImage: cg_img),
-      let buffer = try? vImage_Buffer(cgImage: cg_img, format: format) else {
-        print("unable to create vImage_Buffer")
-        return (nil, 0)
+      let cg_img = CGImageSourceCreateImageAtIndex(
+        src,
+        0,
+        nil
+      ) else {
+        print("unable to create CGImage")
+        return nil
     }
-
-    if bit_depth > 8 {
-        let row_stride =
-          buffer.rowBytes / MemoryLayout<UInt16>.stride / format.componentCount
-        let n = row_stride * Int(buffer.height) * format.componentCount
-        let start = buffer.data.assumingMemoryBound(to: UInt16.self)
-        let ptr = UnsafeBufferPointer<UInt16>(start: start, count: n)
-        return (Array(ptr), bit_depth)
+    /* Set output format */
+    var color_space : CGColorSpace
+    if let cs = cg_img.colorSpace {
+        color_space = cs
     } else {
-        let row_stride =
-          buffer.rowBytes / MemoryLayout<UInt8>.stride / format.componentCount
-        let n = row_stride * Int(buffer.height) * format.componentCount
-        let start = buffer.data.assumingMemoryBound(to: UInt8.self)
-        let ptr = UnsafeBufferPointer<UInt8>(start: start, count: n)
-        return (Array(ptr).map { UInt16($0) }, bit_depth)
+        color_space = CGColorSpace(name: CGColorSpace.displayP3)!
+    }
+    guard
+      var format = vImage_CGImageFormat(
+        bitsPerComponent: MAXIMUM_BPC,
+        bitsPerPixel: MAXIMUM_BPC * 4,
+        colorSpace: color_space,
+        bitmapInfo: .init(rawValue: CGImageAlphaInfo.last.rawValue)
+      ) else {
+        print("unable to create vImage_CGImageFormat")
+        return nil
+    }
+    /* Create vImage_PixelBuffer */
+    do {
+        let buf = try vImage.PixelBuffer(
+          cgImage: cg_img,
+          cgImageFormat: &format,
+          pixelFormat: vImage.Interleaved16Ux4.self
+        )
+        return buf.array
+    } catch {
+        print(error.localizedDescription)
+        return nil
     }
 }
 
