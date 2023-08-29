@@ -9,12 +9,27 @@ import Accelerate
 import Foundation
 import ImageIntermedia
 import ImageIO
+import UniformTypeIdentifiers
 
 @usableFromInline
 let MAXIMUM_BPC = 16
 
+public struct ImageFormat {
+    public var color_space: CGColorSpace
+    public var width : Int
+    public var height : Int
+
+    public init(color_space : CGColorSpace, width : Int, height : Int) {
+        self.color_space = color_space
+        self.width = width
+        self.height = height
+    }
+}
+
+/// Reads image data from a file path into a four-channel, 16-bit-per-channel
+/// RGBA interleaved buffer.
 @inlinable
-public func image_decode(file_path: String) -> [UInt16]? {
+public func image_decode(file_path: String) -> ([UInt16]?, ImageFormat?) {
     /* Create CGImageSource */
     guard
       let src = CGImageSourceCreateWithURL(
@@ -22,7 +37,7 @@ public func image_decode(file_path: String) -> [UInt16]? {
         nil
       ) else {
         print("unable to create CGImageSource")
-        return nil
+        return (nil, nil)
     }
     /* Create CGImage */
     guard
@@ -32,13 +47,14 @@ public func image_decode(file_path: String) -> [UInt16]? {
         nil
       ) else {
         print("unable to create CGImage")
-        return nil
+        return (nil, nil)
     }
     /* Set output format */
     var color_space : CGColorSpace
     if let cs = cg_img.colorSpace {
         color_space = cs
     } else {
+        print("Warning: No color space found. Callback to Display P3.")
         color_space = CGColorSpace(name: CGColorSpace.displayP3)!
     }
     guard
@@ -49,7 +65,7 @@ public func image_decode(file_path: String) -> [UInt16]? {
         bitmapInfo: .init(rawValue: CGImageAlphaInfo.last.rawValue)
       ) else {
         print("unable to create vImage_CGImageFormat")
-        return nil
+        return (nil, nil)
     }
     /* Create vImage_PixelBuffer */
     do {
@@ -58,11 +74,36 @@ public func image_decode(file_path: String) -> [UInt16]? {
           cgImageFormat: &format,
           pixelFormat: vImage.Interleaved16Ux4.self
         )
-        return buf.array
+        return (
+          buf.array,
+          ImageFormat(
+            color_space: color_space,
+            width: cg_img.width,
+            height: cg_img.height
+          )
+        )
     } catch {
         print(error.localizedDescription)
-        return nil
+        return (nil, nil)
     }
+}
+
+/// quality: A value of 1.0 specifies to use lossless compression if destination
+/// format supports it. A value of 0.0 implies to use maximum compression.
+@inlinable
+public func image_encode(
+  pixels: [UInt16],
+  format: ImageFormat,
+  type: UTType,
+  quality: Float
+) {
+    var pixels = pixels
+    var buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(
+      data: &pixels,
+      width: format.width,
+      height: format.height
+    )
+    buf.makeCGImage(cgImageFormat: vImage_CGImageFormat)
 }
 
 public struct Decoder {
