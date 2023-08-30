@@ -1,4 +1,0 @@
-module CHEIF [system] {
-    header "include/cheif.h"
-    export *
-}

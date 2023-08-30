@@ -8,47 +8,11 @@ let package = Package(
   products: [
     .library(name: "ImageCodec",targets: ["ImageCodec"]),
   ],
-  dependencies: [
-    .package(
-      url: "https://github.com/tayloraswift/swift-png",
-      from: "4.0.2"
-    ),
-    .package(
-      url: "https://github.com/fang-ling/image-intermedia",
-      from: "0.0.1"
-    )
-  ],
+  dependencies: [],
   targets: [
     .target(
       name: "ImageCodec",
-      dependencies:[
-        .product(name: "ImageIntermedia", package: "image-intermedia"),
-        "CJPEGTurbo",
-        .product(name: "PNG", package: "swift-png"),
-        "CHEIF",
-        "CWebP"
-      ]
-    ),
-    .systemLibrary(
-      name: "CJPEGTurbo",
-      pkgConfig: "libturbojpeg",
-      providers: [
-        .brew(["jpeg-turbo"])
-      ]
-    ),
-    .systemLibrary(
-      name: "CHEIF",
-      pkgConfig: "libheif",
-      providers: [
-        .brew(["libheif"])
-      ]
-    ),
-    .systemLibrary(
-      name: "CWebP",
-      pkgConfig: "libwebp",
-      providers: [
-        .brew(["webp"])
-      ]
+      dependencies:[]
     ),
     .testTarget(
       name: "ImageCodecTests",

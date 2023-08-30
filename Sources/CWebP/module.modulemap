@@ -1,4 +1,0 @@
-module CWebP [system] {
-    header "include/cwebp.h"
-    export *
-}
