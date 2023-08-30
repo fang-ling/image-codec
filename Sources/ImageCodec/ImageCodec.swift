@@ -92,18 +92,52 @@ public func image_decode(file_path: String) -> ([UInt16]?, ImageFormat?) {
 /// format supports it. A value of 0.0 implies to use maximum compression.
 @inlinable
 public func image_encode(
+  file_path: String,
   pixels: [UInt16],
   format: ImageFormat,
   type: UTType,
   quality: Float
 ) {
+    /* Create vImage_PixelBuffer */
     var pixels = pixels
-    var buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(
+    let buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(
       data: &pixels,
       width: format.width,
       height: format.height
     )
-    buf.makeCGImage(cgImageFormat: vImage_CGImageFormat)
+    /* Set output format */
+    guard
+      let vformat = vImage_CGImageFormat(
+        bitsPerComponent: MAXIMUM_BPC,
+        bitsPerPixel: MAXIMUM_BPC * 4,
+        colorSpace: format.color_space,
+        bitmapInfo: .init(rawValue: CGImageAlphaInfo.last.rawValue)
+      ) else {
+        print("unable to create vImage_CGImageFormat")
+        return
+    }
+    /* Create CGImage */
+    guard let cg_img = buf.makeCGImage(cgImageFormat: vformat) else {
+        print("unable to make CGImage from vImage_Buffer")
+        return
+    }
+    /* Create CGImageDestination */
+    let prop = [
+      kCGImageDestinationLossyCompressionQuality : quality
+    ] as CFDictionary
+    guard
+      let dst =
+        CGImageDestinationCreateWithURL(
+          URL(filePath: file_path) as CFURL,
+          type.identifier as CFString,
+          1,
+          prop
+      ) else {
+        print("unable to create CGImageDestination")
+        return
+    }
+    CGImageDestinationAddImage(dst, cg_img, nil)
+    CGImageDestinationFinalize(dst)
 }
 
 public struct Decoder {
