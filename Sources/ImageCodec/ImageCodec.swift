@@ -130,11 +130,11 @@ public func image_encode(
           URL(filePath: file_path) as CFURL,
           type.identifier as CFString,
           1,
-          prop
+          nil
       ) else {
         print("unable to create CGImageDestination")
         return
     }
-    CGImageDestinationAddImage(dst, cg_img, nil)
+    CGImageDestinationAddImage(dst, cg_img, prop)
     CGImageDestinationFinalize(dst)
 }
