@@ -13,22 +13,29 @@ import UniformTypeIdentifiers
 @usableFromInline
 let MAXIMUM_BPC = 16
 
-public struct ImageFormat {
+public struct ImageMetadata {
     public var color_space: CGColorSpace
     public var width : Int
     public var height : Int
+    public var properties : CFDictionary?
 
-    public init(color_space : CGColorSpace, width : Int, height : Int) {
+    public init(
+      color_space : CGColorSpace,
+      width : Int,
+      height : Int,
+      properties : CFDictionary? = nil
+    ) {
         self.color_space = color_space
         self.width = width
         self.height = height
+        self.properties = properties
     }
 }
 
 /// Reads image data from a file path into a four-channel, 16-bit-per-channel
 /// RGBA interleaved buffer.
 @inlinable
-public func image_decode(file_path: String) -> ([UInt16]?, ImageFormat?) {
+public func image_decode(file_path: String) -> ([UInt16]?, ImageMetadata?) {
     /* Create CGImageSource */
     guard
       let src = CGImageSourceCreateWithURL(
@@ -38,6 +45,8 @@ public func image_decode(file_path: String) -> ([UInt16]?, ImageFormat?) {
         print("unable to create CGImageSource")
         return (nil, nil)
     }
+    /* Retrieve image metadata */
+    let properties = CGImageSourceCopyPropertiesAtIndex(src, 0, nil)
     /* Create CGImage */
     guard
       let cg_img = CGImageSourceCreateImageAtIndex(
@@ -75,10 +84,11 @@ public func image_decode(file_path: String) -> ([UInt16]?, ImageFormat?) {
         )
         return (
           buf.array,
-          ImageFormat(
+          ImageMetadata(
             color_space: color_space,
             width: cg_img.width,
-            height: cg_img.height
+            height: cg_img.height,
+            properties: properties
           )
         )
     } catch {
@@ -93,7 +103,7 @@ public func image_decode(file_path: String) -> ([UInt16]?, ImageFormat?) {
 public func image_encode(
   file_path: String,
   pixels: [UInt16],
-  format: ImageFormat,
+  metadata: ImageMetadata,
   type: UTType,
   quality: Float
 ) {
@@ -101,15 +111,15 @@ public func image_encode(
     var pixels = pixels
     let buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(
       data: &pixels,
-      width: format.width,
-      height: format.height
+      width: metadata.width,
+      height: metadata.height
     )
     /* Set output format */
     guard
       let vformat = vImage_CGImageFormat(
         bitsPerComponent: MAXIMUM_BPC,
         bitsPerPixel: MAXIMUM_BPC * 4,
-        colorSpace: format.color_space,
+        colorSpace: metadata.color_space,
         bitmapInfo: .init(rawValue: CGImageAlphaInfo.last.rawValue)
       ) else {
         print("unable to create vImage_CGImageFormat")
@@ -121,9 +131,11 @@ public func image_encode(
         return
     }
     /* Create CGImageDestination */
-    let prop = [
-      kCGImageDestinationLossyCompressionQuality : quality
-    ] as CFDictionary
+    var properties : [CFString : Any] = [:]
+    if metadata.properties != nil {
+        properties = (metadata.properties as? [CFString : Any])!
+    }
+    properties[kCGImageDestinationLossyCompressionQuality] = quality
     guard
       let dst =
         CGImageDestinationCreateWithURL(
@@ -135,6 +147,6 @@ public func image_encode(
         print("unable to create CGImageDestination")
         return
     }
-    CGImageDestinationAddImage(dst, cg_img, prop)
+    CGImageDestinationAddImage(dst, cg_img, properties as CFDictionary)
     CGImageDestinationFinalize(dst)
 }
