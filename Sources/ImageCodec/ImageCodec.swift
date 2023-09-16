@@ -6,6 +6,7 @@
 //
 
 import Accelerate
+//import CoreGraphics
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
@@ -115,12 +116,74 @@ public func image_encode(
       height: metadata.height
     )
     /* Set output format */
+    let bitmap_info = CGBitmapInfo(
+      rawValue:
+        CGBitmapInfo.byteOrderDefault.rawValue |
+        CGImageAlphaInfo.last.rawValue
+    )
     guard
       let vformat = vImage_CGImageFormat(
         bitsPerComponent: MAXIMUM_BPC,
         bitsPerPixel: MAXIMUM_BPC * 4,
         colorSpace: metadata.color_space,
-        bitmapInfo: .init(rawValue: CGImageAlphaInfo.last.rawValue)
+        bitmapInfo: bitmap_info
+      ) else {
+        print("unable to create vImage_CGImageFormat")
+        return
+    }
+    /* Create CGImage */
+    guard let cg_img = buf.makeCGImage(cgImageFormat: vformat) else {
+        print("unable to make CGImage from vImage_Buffer")
+        return
+    }
+    /* Create CGImageDestination */
+    var properties : [CFString : Any] = [:]
+    if metadata.properties != nil {
+        properties = (metadata.properties as? [CFString : Any])!
+    }
+    properties[kCGImageDestinationLossyCompressionQuality] = quality
+    guard
+      let dst =
+        CGImageDestinationCreateWithURL(
+          URL(filePath: file_path) as CFURL,
+          type.identifier as CFString,
+          1,
+          nil
+      ) else {
+        print("unable to create CGImageDestination")
+        return
+    }
+    CGImageDestinationAddImage(dst, cg_img, properties as CFDictionary)
+    CGImageDestinationFinalize(dst)
+}
+
+@inlinable
+public func image_encode_8bit(
+  file_path: String,
+  pixels: [UInt8],
+  metadata: ImageMetadata,
+  type: UTType,
+  quality: Float
+) {
+    /* Create vImage_PixelBuffer */
+    var pixels = pixels
+    let buf = vImage.PixelBuffer<vImage.Interleaved8x4>(
+      data: &pixels,
+      width: metadata.width,
+      height: metadata.height
+    )
+    /* Set output format */
+    let bitmap_info = CGBitmapInfo(
+      rawValue:
+        CGBitmapInfo.byteOrderDefault.rawValue |
+        CGImageAlphaInfo.last.rawValue
+    )
+    guard
+      let vformat = vImage_CGImageFormat(
+        bitsPerComponent: MAXIMUM_BPC/2,
+        bitsPerPixel: MAXIMUM_BPC * 4/2,
+        colorSpace: metadata.color_space,
+        bitmapInfo: bitmap_info
       ) else {
         print("unable to create vImage_CGImageFormat")
         return
