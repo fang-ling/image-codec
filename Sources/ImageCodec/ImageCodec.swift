@@ -11,7 +11,7 @@ import ImageIO
 import UniformTypeIdentifiers
 
 @usableFromInline
-let BPC = 16
+let BPC = 8
 
 public struct PixelBuffer {
   public var width : Int
@@ -22,7 +22,7 @@ public struct PixelBuffer {
   public var bitmap_info : CGBitmapInfo
   public var properties : CFDictionary?
 
-  public var array : [UInt16]
+  public var array : [UInt8]
 
   public init(
     width: Int,
@@ -83,7 +83,7 @@ public func image_decode(file_path: String) -> PixelBuffer? {
       return nil
     }
     /* Create the Destination Buffers */
-    let dst_buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(size: src_buf.size)
+    let dst_buf = vImage.PixelBuffer<vImage.Interleaved8x4>(size: src_buf.size)
     /* Perform the conversion */
     let converter = try
       vImageConverter.make(
@@ -134,7 +134,7 @@ public func image_encode(
     return
   }
   /* Create CGImage */
-  let buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(
+  let buf = vImage.PixelBuffer<vImage.Interleaved8x4>(
     data: &pixel_buffer.array,
     width: pixel_buffer.width,
     height: pixel_buffer.height
