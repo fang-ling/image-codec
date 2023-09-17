@@ -6,96 +6,104 @@
 //
 
 import Accelerate
-//import CoreGraphics
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
 
-@usableFromInline
-let MAXIMUM_BPC = 16
+public struct PixelBuffer {
+  @usableFromInline
+  var width : Int
+  @usableFromInline
+  var height : Int
+  @usableFromInline
+  var bits_per_component : Int
+  @usableFromInline
+  var component_count : Int
+  @usableFromInline
+  var color_space : CGColorSpace
+  @usableFromInline
+  var bitmap_info : CGBitmapInfo
+  @usableFromInline
+  var properties : CFDictionary?
 
-public struct ImageMetadata {
-    public var color_space: CGColorSpace
-    public var width : Int
-    public var height : Int
-    public var properties : CFDictionary?
+  @usableFromInline
+  var array : [UInt8]
+  @usableFromInline
+  var array_16 : [UInt16]
 
-    public init(
-      color_space : CGColorSpace,
-      width : Int,
-      height : Int,
-      properties : CFDictionary? = nil
-    ) {
-        self.color_space = color_space
-        self.width = width
-        self.height = height
-        self.properties = properties
-    }
+  public init(
+    width: Int,
+    height: Int,
+    bits_per_component: Int,
+    component_count: Int,
+    color_space: CGColorSpace,
+    bitmap_info: CGBitmapInfo,
+    properties: CFDictionary?
+  ) {
+    self.width = width
+    self.height = height
+    self.bits_per_component = bits_per_component
+    self.component_count = component_count
+    self.color_space = color_space
+    self.bitmap_info = bitmap_info
+    self.properties = properties
+    
+    array = []
+    array_16 = []
+  }
 }
 
-/// Reads image data from a file path into a four-channel, 16-bit-per-channel
-/// RGBA interleaved buffer.
+/// Reads image data from a file path into RGB(A) interleaved buffer.
 @inlinable
-public func image_decode(file_path: String) -> ([UInt16]?, ImageMetadata?) {
-    /* Create CGImageSource */
-    guard
-      let src = CGImageSourceCreateWithURL(
-        URL(filePath: file_path) as CFURL,
-        nil
-      ) else {
-        print("unable to create CGImageSource")
-        return (nil, nil)
-    }
-    /* Retrieve image metadata */
-    let properties = CGImageSourceCopyPropertiesAtIndex(src, 0, nil)
-    /* Create CGImage */
-    guard
-      let cg_img = CGImageSourceCreateImageAtIndex(
-        src,
-        0,
-        nil
-      ) else {
-        print("unable to create CGImage")
-        return (nil, nil)
-    }
-    /* Set output format */
-    var color_space : CGColorSpace
-    if let cs = cg_img.colorSpace {
-        color_space = cs
+public func image_decode(file_path: String) -> PixelBuffer? {
+  /* Create CGImageSource */
+  guard let src = CGImageSourceCreateWithURL(
+    URL(filePath: file_path) as CFURL,
+    nil
+  ) else {
+    print("unable to create CGImageSource")
+    return nil
+  }
+  /* Retrieve image metadata */
+  let properties = CGImageSourceCopyPropertiesAtIndex(src, 0, nil)
+  /* Create CGImage */
+  guard let cg_img = CGImageSourceCreateImageAtIndex(src, 0, nil) else {
+    print("unable to create CGImage")
+    return nil
+  }
+  /* Create vImage_PixelBuffer */
+  do {
+    let (buf, format) =
+      try vImage.PixelBuffer.makeDynamicPixelBufferAndCGImageFormat(
+        cgImage: cg_img
+      )
+    print(cg_img)
+    var pixel_buf =
+      PixelBuffer.init(
+        width: cg_img.width,
+        height: cg_img.height,
+        bits_per_component: cg_img.bitsPerComponent,
+        component_count: format.componentCount,
+        color_space: cg_img.colorSpace!,
+        bitmap_info: format.bitmapInfo,
+        properties: properties
+      )
+    if cg_img.bitsPerComponent <= 8 {
+      pixel_buf.array = buf.makeArray(
+        of: UInt8.self,
+        channelCount: format.componentCount
+      )
     } else {
-        print("Warning: No color space found. Callback to Display P3.")
-        color_space = CGColorSpace(name: CGColorSpace.displayP3)!
+      pixel_buf.array_16 = buf.makeArray(
+        of: UInt16.self,
+        channelCount: format.componentCount
+      )
     }
-    guard
-      var format = vImage_CGImageFormat(
-        bitsPerComponent: MAXIMUM_BPC,
-        bitsPerPixel: MAXIMUM_BPC * 4,
-        colorSpace: color_space,
-        bitmapInfo: .init(rawValue: CGImageAlphaInfo.last.rawValue)
-      ) else {
-        print("unable to create vImage_CGImageFormat")
-        return (nil, nil)
-    }
-    /* Create vImage_PixelBuffer */
-    do {
-        let buf = try vImage.PixelBuffer(
-          cgImage: cg_img,
-          cgImageFormat: &format,
-          pixelFormat: vImage.Interleaved16Ux4.self
-        )
-        return (
-          buf.array,
-          ImageMetadata(
-            color_space: color_space,
-            width: cg_img.width,
-            height: cg_img.height,
-            properties: properties
-          )
-        )
-    } catch {
-        print(error.localizedDescription)
-        return (nil, nil)
-    }
+    return pixel_buf
+  } catch {
+    print(error)
+    return nil
+  }
 }
 
 /// quality: A value of 1.0 specifies to use lossless compression if destination
@@ -103,113 +111,60 @@ public func image_decode(file_path: String) -> ([UInt16]?, ImageMetadata?) {
 @inlinable
 public func image_encode(
   file_path: String,
-  pixels: [UInt16],
-  metadata: ImageMetadata,
-  type: UTType,
+  pixel_buffer: PixelBuffer,
   quality: Float
 ) {
-    /* Create vImage_PixelBuffer */
-    var pixels = pixels
-    let buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(
-      data: &pixels,
-      width: metadata.width,
-      height: metadata.height
-    )
-    /* Set output format */
-    let bitmap_info = CGBitmapInfo(
-      rawValue:
-        CGBitmapInfo.byteOrderDefault.rawValue |
-        CGImageAlphaInfo.last.rawValue
-    )
-    guard
-      let vformat = vImage_CGImageFormat(
-        bitsPerComponent: MAXIMUM_BPC,
-        bitsPerPixel: MAXIMUM_BPC * 4,
-        colorSpace: metadata.color_space,
-        bitmapInfo: bitmap_info
-      ) else {
-        print("unable to create vImage_CGImageFormat")
-        return
-    }
-    /* Create CGImage */
-    guard let cg_img = buf.makeCGImage(cgImageFormat: vformat) else {
-        print("unable to make CGImage from vImage_Buffer")
-        return
-    }
-    /* Create CGImageDestination */
-    var properties : [CFString : Any] = [:]
-    if metadata.properties != nil {
-        properties = (metadata.properties as? [CFString : Any])!
-    }
-    properties[kCGImageDestinationLossyCompressionQuality] = quality
-    guard
-      let dst =
-        CGImageDestinationCreateWithURL(
-          URL(filePath: file_path) as CFURL,
-          type.identifier as CFString,
-          1,
-          nil
-      ) else {
-        print("unable to create CGImageDestination")
-        return
-    }
-    CGImageDestinationAddImage(dst, cg_img, properties as CFDictionary)
-    CGImageDestinationFinalize(dst)
-}
-
-@inlinable
-public func image_encode_8bit(
-  file_path: String,
-  pixels: [UInt8],
-  metadata: ImageMetadata,
-  type: UTType,
-  quality: Float
-) {
-    /* Create vImage_PixelBuffer */
-    var pixels = pixels
+  var pixel_buffer = pixel_buffer
+  let type =
+    UTType(
+      filenameExtension: file_path.components(separatedBy: ".").last!
+    )!
+  
+  guard let format = vImage_CGImageFormat(
+    bitsPerComponent: pixel_buffer.bits_per_component,
+    bitsPerPixel: pixel_buffer.bits_per_component*pixel_buffer.component_count,
+    colorSpace: pixel_buffer.color_space,
+    bitmapInfo: pixel_buffer.bitmap_info
+  ) else {
+    print("unable to create vImage_CGImageFormat")
+    return
+  }
+  /* Create CGImage */
+  var cg_img : CGImage?
+  if pixel_buffer.bits_per_component <= 8 { /* Create vImage_PixelBuffer */
     let buf = vImage.PixelBuffer<vImage.Interleaved8x4>(
-      data: &pixels,
-      width: metadata.width,
-      height: metadata.height
+      data: &pixel_buffer.array,
+      width: pixel_buffer.width,
+      height: pixel_buffer.height
     )
-    /* Set output format */
-    let bitmap_info = CGBitmapInfo(
-      rawValue:
-        CGBitmapInfo.byteOrderDefault.rawValue |
-        CGImageAlphaInfo.last.rawValue
+    cg_img = buf.makeCGImage(cgImageFormat: format)
+  } else {
+    let buf = vImage.PixelBuffer<vImage.Interleaved16Ux4>(
+      data: &pixel_buffer.array_16,
+      width: pixel_buffer.width,
+      height: pixel_buffer.height
     )
-    guard
-      let vformat = vImage_CGImageFormat(
-        bitsPerComponent: MAXIMUM_BPC/2,
-        bitsPerPixel: MAXIMUM_BPC * 4/2,
-        colorSpace: metadata.color_space,
-        bitmapInfo: bitmap_info
-      ) else {
-        print("unable to create vImage_CGImageFormat")
-        return
-    }
-    /* Create CGImage */
-    guard let cg_img = buf.makeCGImage(cgImageFormat: vformat) else {
-        print("unable to make CGImage from vImage_Buffer")
-        return
-    }
-    /* Create CGImageDestination */
-    var properties : [CFString : Any] = [:]
-    if metadata.properties != nil {
-        properties = (metadata.properties as? [CFString : Any])!
-    }
-    properties[kCGImageDestinationLossyCompressionQuality] = quality
-    guard
-      let dst =
-        CGImageDestinationCreateWithURL(
-          URL(filePath: file_path) as CFURL,
-          type.identifier as CFString,
-          1,
-          nil
-      ) else {
-        print("unable to create CGImageDestination")
-        return
-    }
-    CGImageDestinationAddImage(dst, cg_img, properties as CFDictionary)
-    CGImageDestinationFinalize(dst)
+    cg_img = buf.makeCGImage(cgImageFormat: format)
+  }
+  guard let cg_img else {
+    print("unable to make CGImage from vImage_Buffer")
+    return
+  }
+  /* Create CGImageDestination */
+  var properties : [CFString : Any] = [:]
+  if pixel_buffer.properties != nil {
+    properties = (pixel_buffer.properties as? [CFString : Any])!
+  }
+  properties[kCGImageDestinationLossyCompressionQuality] = quality
+  guard let dst = CGImageDestinationCreateWithURL(
+    URL(filePath: file_path) as CFURL,
+    type.identifier as CFString,
+    1,
+    nil
+  ) else {
+    print("unable to create CGImageDestination")
+    return
+  }
+  CGImageDestinationAddImage(dst, cg_img, properties as CFDictionary)
+  CGImageDestinationFinalize(dst)
 }

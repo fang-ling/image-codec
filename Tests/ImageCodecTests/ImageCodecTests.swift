@@ -11,18 +11,11 @@ import UniformTypeIdentifiers
 @testable import ImageCodec
 
 final class ImageCodecTests : XCTestCase {
-    func test_example() {
-        let (pixels, metadata) = image_decode(file_path: "Images/bi-0-1.png")
-        if pixels == nil || metadata == nil {
-            fatalError("unable to decode image")
-        }
-        print(pixels!)
-        image_encode_8bit(
-          file_path: "output.png",
-          pixels: pixels!.map{ UInt8($0>>8)},
-          metadata: metadata!,
-          type: UTType.png,
-          quality: 1
-        )
+  func test_example() {
+    let pixel_buf = image_decode(file_path: "Images/2.jpg")
+    guard let pixel_buf else {
+      fatalError("unable to decode image")
     }
+    image_encode(file_path: "output.png", pixel_buffer: pixel_buf, quality: 1)
+  }
 }
