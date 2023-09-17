@@ -11,25 +11,16 @@ import ImageIO
 import UniformTypeIdentifiers
 
 public struct PixelBuffer {
-  @usableFromInline
-  var width : Int
-  @usableFromInline
-  var height : Int
-  @usableFromInline
-  var bits_per_component : Int
-  @usableFromInline
-  var component_count : Int
-  @usableFromInline
-  var color_space : CGColorSpace
-  @usableFromInline
-  var bitmap_info : CGBitmapInfo
-  @usableFromInline
-  var properties : CFDictionary?
+  public var width : Int
+  public var height : Int
+  public var bits_per_component : Int
+  public var component_count : Int
+  public var color_space : CGColorSpace
+  public var bitmap_info : CGBitmapInfo
+  public var properties : CFDictionary?
 
-  @usableFromInline
-  var array : [UInt8]
-  @usableFromInline
-  var array_16 : [UInt16]
+  public var array : [UInt8]
+  public var array_16 : [UInt16]
 
   public init(
     width: Int,
