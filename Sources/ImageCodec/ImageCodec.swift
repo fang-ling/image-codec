@@ -161,3 +161,45 @@ public func image_encode(
   CGImageDestinationAddImage(dst, cg_img, properties as CFDictionary)
   CGImageDestinationFinalize(dst)
 }
+
+@inlinable
+public func image_convert(
+  from ipath : String,
+  to opath : String,
+  quality : Float
+) {
+  /* Create CGImageSource */
+  guard let src = CGImageSourceCreateWithURL(
+    URL(filePath: ipath) as CFURL,
+    nil
+  ) else {
+    fatalError("unable to create CGImageSource")
+  }
+  /* Retrieve image metadata */
+  let properties = CGImageSourceCopyPropertiesAtIndex(src, 0, nil)
+  /* Create CGImage */
+  guard let cg_img = CGImageSourceCreateImageAtIndex(src, 0, nil) else {
+    fatalError("unable to create CGImage")
+  }
+  /* Create CGImageDestination */
+  var o_properties : [CFString : Any] = [:]
+  if properties != nil {
+    o_properties = (properties as? [CFString : Any])!
+  }
+  let type =
+    UTType(
+      filenameExtension: opath.components(separatedBy: ".").last!
+    )!
+  o_properties[kCGImageDestinationLossyCompressionQuality] = quality
+  guard let dst = CGImageDestinationCreateWithURL(
+    URL(filePath: opath) as CFURL,
+    type.identifier as CFString,
+    1,
+    nil
+  ) else {
+    print("unable to create CGImageDestination")
+    return
+  }
+  CGImageDestinationAddImage(dst, cg_img, o_properties as CFDictionary)
+  CGImageDestinationFinalize(dst)
+}
