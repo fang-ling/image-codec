@@ -10,38 +10,39 @@ import Foundation
 import ImageIO
 import UniformTypeIdentifiers
 
-@usableFromInline
-let BPC = 8
+/* 
+ * Configuring parameters for standardizing images.
+ *   four-channel
+ *   8-bit-per-channel
+ *   sRGB
+ *   ARGB
+ */
+let BITS_PER_COMPONENT = 8
+let COMPONENT_COUNT = 4
+let COLOR_SPACE = CGColorSpace(name: CGColorSpace.sRGB)
+let BITMAP_INFO=CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
 
 public struct PixelBuffer {
   public var width : Int
   public var height : Int
-  public var bits_per_component : Int
-  public var component_count : Int
-  public var color_space : CGColorSpace
-  public var bitmap_info : CGBitmapInfo
+  public var bits_per_component = BITS_PER_COMPONENT
+  public var component_count = COMPONENT_COUNT
+  public var color_space = COLOR_SPACE
+  public var bitmap_info = BITMAP_INFO
   public var properties : CFDictionary?
 
-  public var array : [UInt8]
+  /*
+   * Each component comprises a monochrome matrix consisting of `height`
+   * multiplied by `width` pixels. The matrix is stored in row-major order.
+   */
+  public var components : [[UInt8]]
 
-  public init(
-    width: Int,
-    height: Int,
-    bits_per_component: Int,
-    component_count: Int,
-    color_space: CGColorSpace,
-    bitmap_info: CGBitmapInfo,
-    properties: CFDictionary?
-  ) {
+  public init(width: Int, height: Int, properties: CFDictionary?) {
     self.width = width
     self.height = height
-    self.bits_per_component = bits_per_component
-    self.component_count = component_count
-    self.color_space = color_space
-    self.bitmap_info = bitmap_info
     self.properties = properties
     
-    array = []
+    components = [[UInt8]](repeating: [UInt8](), count: bits_per_component)
   }
 }
 
@@ -49,7 +50,6 @@ public struct PixelBuffer {
 /// 16-bit-per-channel ARGB interleaved buffer.
 ///
 /// Color space and metadata are copied.
-@inlinable
 public func image_decode(file_path: String) -> PixelBuffer? {
   /* Create CGImageSource */
   guard let src = CGImageSourceCreateWithURL(
@@ -77,7 +77,7 @@ public func image_decode(file_path: String) -> PixelBuffer? {
       bitsPerComponent: BPC,
       bitsPerPixel: BPC * 4,
       colorSpace: cg_img.colorSpace!,
-      bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
+      bitmapInfo:
     ) else {
       print("unable to initialize cgImageformat")
       return nil
