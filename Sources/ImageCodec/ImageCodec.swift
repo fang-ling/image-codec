@@ -15,11 +15,11 @@ import UniformTypeIdentifiers
  *   four-channel
  *   8-bit-per-channel
  *   sRGB
- *   ARGB
+ *   ARGB planar with A = 255
  */
 let BITS_PER_COMPONENT = 8
 let COMPONENT_COUNT = 4
-let COLOR_SPACE = CGColorSpace(name: CGColorSpace.sRGB)
+let COLOR_SPACE = CGColorSpace(name: CGColorSpace.sRGB)!
 let BITMAP_INFO=CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
 
 public struct PixelBuffer {
@@ -46,10 +46,12 @@ public struct PixelBuffer {
   }
 }
 
-/// Reads image data from a file and convert it into a four-channel,
-/// 16-bit-per-channel ARGB interleaved buffer.
-///
-/// Color space and metadata are copied.
+/*
+ * Reads image data from a file and convert it into a four-channel,
+ * 8-bit-per-channel ARGB planar pixel buffer.
+ *
+ * Metadata are copied.
+ */
 public func image_decode(file_path: String) -> PixelBuffer? {
   /* Create CGImageSource */
   guard let src = CGImageSourceCreateWithURL(
@@ -74,10 +76,10 @@ public func image_decode(file_path: String) -> PixelBuffer? {
         cgImage: cg_img
       )
     guard let dst_format = vImage_CGImageFormat(
-      bitsPerComponent: BPC,
-      bitsPerPixel: BPC * 4,
-      colorSpace: cg_img.colorSpace!,
-      bitmapInfo:
+      bitsPerComponent: BITS_PER_COMPONENT,
+      bitsPerPixel: BITS_PER_COMPONENT * COMPONENT_COUNT,
+      colorSpace: COLOR_SPACE,
+      bitmapInfo: BITMAP_INFO
     ) else {
       print("unable to initialize cgImageformat")
       return nil
@@ -96,13 +98,22 @@ public func image_decode(file_path: String) -> PixelBuffer? {
       PixelBuffer.init(
         width: cg_img.width,
         height: cg_img.height,
-        bits_per_component: Int(dst_format.bitsPerComponent),
-        component_count: dst_format.componentCount,
-        color_space: cg_img.colorSpace!,
-        bitmap_info: dst_format.bitmapInfo,
         properties: properties
       )
-    pixel_buf.array = dst_buf.array
+    /* Split interleaved buffer */
+    var planar_bufs = [vImage.PixelBuffer<vImage.Planar8>]()
+    for _ in 0 ..< COMPONENT_COUNT {
+      planar_bufs.append(
+        vImage.PixelBuffer(
+          size: dst_buf.size,
+          pixelFormat: vImage.Planar8.self
+        )
+      )
+    }
+    dst_buf.deinterleave(planarDestinationBuffers: planar_bufs)
+    for i in 0 ..< COMPONENT_COUNT {
+      pixel_buf.components[i] = planar_bufs[i].array
+    }
     return pixel_buf
   } catch {
     print(error)
@@ -110,15 +121,15 @@ public func image_decode(file_path: String) -> PixelBuffer? {
   }
 }
 
-/// quality: A value of 1.0 specifies to use lossless compression if destination
-/// format supports it. A value of 0.0 implies to use maximum compression.
-@inlinable
+/*
+ * quality: A value of 1.0 specifies to use lossless compression if destination
+ * format supports it. A value of 0.0 implies to use maximum compression.
+ */
 public func image_encode(
   file_path: String,
   pixel_buffer: PixelBuffer,
   quality: Float
 ) {
-  var pixel_buffer = pixel_buffer
   let type =
     UTType(
       filenameExtension: file_path.components(separatedBy: ".").last!
@@ -133,12 +144,22 @@ public func image_encode(
     print("unable to create vImage_CGImageFormat")
     return
   }
-  /* Create CGImage */
+  /* Create interleaved buffer */
   let buf = vImage.PixelBuffer<vImage.Interleaved8x4>(
-    data: &pixel_buffer.array,
     width: pixel_buffer.width,
     height: pixel_buffer.height
   )
+  var planar_bufs = [vImage.PixelBuffer<vImage.Planar8>]()
+  for i in 0 ..< COMPONENT_COUNT {
+    planar_bufs.append(
+      vImage.PixelBuffer<vImage.Planar8>(
+        pixelValues: pixel_buffer.components[i],
+        size: buf.size
+      )
+    )
+  }
+  buf.interleave(planarSourceBuffers: planar_bufs)
+  /* Create CGImage */
   guard let cg_img = buf.makeCGImage(cgImageFormat: format) else {
     print("unable to make CGImage from vImage_Buffer")
     return
